@@ -13,7 +13,7 @@ subjval_intents = [.01 .025 .05 .2 .5 1.4]; % range of expected values of intent
 state_selectivities = 1:.1:20; % range of state selectivities
 n_states = 5; % number of future states
 target_trans_state = 3; % state set for transitioning to goal during implementation intention
-m = [.5, 1, 2]; % suppression exponent
+m = [0, 1, 2]; % suppression exponent
 
 nvi = numel(subjval_intents);
 nb = numel(state_selectivities);
