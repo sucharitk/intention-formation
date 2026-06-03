@@ -1,0 +1,62 @@
+function pcomp = simulate_masicampo(params, model)
+
+v = params(1);
+
+gamma = get_gamma(params, model);
+m     = params(end);
+
+softmax = @(x,y) exp(x) / (exp(x)+exp(y));
+
+n_states = 2;
+cued_state = 2;
+time_cond = [2 1];
+
+pcomp = zeros(2,2);
+
+for n_time_cond = 1:2
+    for int_cond = 1:2
+        
+        g = gamma(int_cond);
+        psi = ones(1, n_states);
+        pi = psi;
+        states = 1:n_states;
+
+        % compute Q-vals
+        switch model
+            case {'gating', 'association', 'gatingM1'}
+                % for s = 1:n_states
+                psi(states==cued_state) = v * g;
+                psi(states~=cued_state) = v * g^(-m);
+                Q = v * psi;
+
+            case 'subtractive'
+                psi(states==cued_state) = v + g;
+                psi(states~=cued_state) = v - m*g;
+                Q = v * psi;
+
+            case 'gating_log'
+                psi(states==cued_state) = v * g;
+                psi(states~=cued_state) = v * g^(-m);
+                Q = v + log(psi);
+
+            case 'compression'
+                psi(states==cued_state) = v * g;
+                psi = psi / 
+        end
+        
+        % compute policy
+        for s = 1:n_states
+            pi(s) = softmax(Q(s),1);
+        end
+
+        % prob of goal pursuit
+        p = pi(1);
+        for t = 2:time_cond(n_time_cond)
+            p = p + (1-p)*pi(t);
+        end
+        
+        pcomp(n_time_cond,int_cond) = p;
+    end
+end
+
+end

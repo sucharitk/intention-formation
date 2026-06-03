@@ -1,0 +1,70 @@
+p_success = [.680 .955; .714 .367]; % rows: time condition, cols: goal vs. implementation intention
+
+study = 'masicampo';  
+n_subj_per_cond = 25;
+fitResults = fit_models_dataset(p_success, study, n_subj_per_cond);
+
+
+% % Compare your model vs associative
+% plot_from_fitResults(p_success, fitResults, 'gating', 'associative', ...
+%     {'Planned Cue Available','Planned Cue Omitted'});
+
+% Compare your model vs associative
+plot_all_model_comparisons(p_success, fitResults, ...
+    {'Planned Cue Available','Planned Cue Omitted'});
+
+%%
+p_success = [.40 .61; .48 .43]; % rows: time condition, cols: goal vs. implementation intention
+
+
+study = 'dalton';  
+n_subj_per_cond = 25;
+fitResults = fit_models_dataset(p_success, study, n_subj_per_cond);
+
+
+% % Compare your model vs associative
+% plot_from_fitResults(p_success, fitResults, 'gating', 'associative', ...
+%     {'Planned Cue Available','Planned Cue Omitted'});
+
+% Compare your model vs associative
+plot_all_model_comparisons(p_success, fitResults, ...
+    {'Planned Cue Available','Planned Cue Omitted'});
+
+%%
+data = readtable('vanTimmeren2023_Study1.xlsx', 'Sheet', 'SSG_IIGI_betw-subj_FINAL_OSF');
+
+subj_id = data.sub_id;
+subj_id = subj_id(~isnan(subj_id));
+nsubj = numel(subj_id);
+
+Testacc_sv = data.Testacc_sv;
+Testacc_up = data.Testacc_up;
+Testacc_sn = data.Testacc_sn;
+Testacc_de = data.Testacc_de;
+
+group = data.Group_II1_or_GI2;
+included = data.incl;
+
+gg = group==1 & included==1;
+accu_II = [mean(Testacc_sv(gg)), mean(Testacc_up(gg)),...
+    mean(Testacc_sn(gg)), mean(Testacc_de(gg))];
+gg = group==2 & included==1;
+accu_GI = [mean(Testacc_sv(gg)), mean(Testacc_up(gg)),...
+    mean(Testacc_sn(gg)), mean(Testacc_de(gg))];
+
+data2fit = [accu_II; accu_GI]';
+data2fit = data2fit/100;
+% figure, bar(data2fit)
+
+study = 'vanTimmeren';  
+n_subj_per_cond = 25;
+fitResults = fit_models_dataset(data2fit, study, n_subj_per_cond);
+
+
+% % Compare your model vs associative
+% plot_from_fitResults(p_success, fitResults, 'gating', 'associative', ...
+%     {'Planned Cue Available','Planned Cue Omitted'});
+
+% Compare your model vs associative
+plot_all_model_comparisons(p_success, fitResults, ...
+    {'Planned Cue Available','Planned Cue Omitted'});

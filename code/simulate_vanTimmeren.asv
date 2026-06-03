@@ -1,0 +1,56 @@
+function p_goal = simulate_vanTimmeren(params, model)
+
+v_high = params(1);
+v_low = 1;
+
+gamma = get_gamma(params, model);
+m     = get_m(params, model);
+
+
+softmax = @(d1,d2) exp(d1) ./ (exp(d1) + exp(d2));
+
+init_vals = [1 0 0 1];
+test_vals = [1 1 0 0];
+
+N = 4;
+p_goal = zeros(N,2);
+
+for cond = 1:2
+
+    g = gamma(cond);
+    context = ones(N,2);
+
+    % iterate over intentions
+    for i = 1:N
+
+        % boost target
+        if init_vals(i)
+            % if GO is correct, boost GO
+            context(i,2) = context(i,2)*g;
+        else
+            % if NOGO is correct, boost NOGO
+            context(i,1) = context(i,1)*g;
+        end
+
+        % suppress the action GO (NOGO) from all other GO (NOGO) states
+        for j = 1:N
+            if j~=i
+                if init_vals(i)
+                    context(j,2) = context(j,2) * (1/g^m);
+                else
+                    context(j,1) = context(j,1) * (1/g^m);
+                end
+            end
+        end
+    end
+
+    for i = 1:N
+        if test_vals(i)
+            p_goal(i,cond) = softmax(v_high * context(i,2), v_low * context(i,1));
+        else
+            p_goal(i,cond) = softmax(v_high * context(i,1), v_low * context(i,2));
+        end
+    end
+end
+
+end

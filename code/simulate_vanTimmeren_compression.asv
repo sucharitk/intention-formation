@@ -1,0 +1,75 @@
+function p = simulate_vanTimmeren_compression(params)
+
+beta = 1;
+
+v_high = params(1);
+gamma  = params(2:3);
+alpha  = params(4);
+
+softmax_fn = @(x,y) exp(beta*x) ./ (exp(beta*x)+exp(beta*y));
+
+N = 4;
+
+init_vals = [1 0 0 1];
+test_vals = [1 1 0 0];
+
+p = zeros(N,2);
+
+for c = 1:2
+    
+    g = gamma(c);
+    
+    % -------------------------
+    % policy structure (encoding)
+    % -------------------------
+    psi = ones(N,2);
+    
+    for i = 1:N
+        if init_vals(i)
+            psi(i,2) = g;   % GO association
+        else
+            psi(i,1) = g;   % NO-GO association
+        end
+    end
+    
+    % -------------------------
+    % COMPRESSION (α log ψ)
+    % -------------------------
+    log_psi = alpha * log(psi);
+    
+    % normalize within action (optional but consistent with your framework)
+    psi = exp(log_psi);
+    psi = psi ./ sum(psi,1);
+    
+    % -------------------------
+    % At Test Rewards switch
+    % -------------------------
+    R = ones(N,2);        % default value = 1
+    
+    for i = 1:N
+        if test_vals(i)
+            R(i,2) = v_high;   % GO is valuable
+        else
+            R(i,1) = v_high;   % NO-GO is valuable (test-dependent symmetry)
+        end
+    end
+    
+    % -------------------------
+    % decision rule (consistent with Masicampo)
+    % -------------------------
+    for i = 1:N
+        
+        U_go   = R(i,2) + log(psi(i,2) + eps);
+        U_nogo = R(i,1) + log(psi(i,1) + eps);
+        
+        p_go = softmax_fn(U_go, U_nogo);
+        
+        if test_vals(i)
+            p(i,c) = p_go;
+        else
+            p(i,c) = 1 - p_go;
+        end
+    end
+end
+
+end
